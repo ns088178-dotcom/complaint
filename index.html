@@ -1,0 +1,312 @@
+
+<html>
+<head>
+<title>Smart Campus Complaint Portal</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body{
+    background:#0b1e36;
+    color:white;
+}
+
+/* HEADER */
+header{
+    background:#102a43;
+    padding:20px;
+    text-align:center;
+    box-shadow:0 4px 15px rgba(0,0,0,0.5);
+}
+
+header h1{
+    font-size:28px;
+}
+
+header p{
+    color:#9fb3c8;
+    font-size:14px;
+}
+
+/* SECTION */
+section{
+    width:85%;
+    margin:30px auto;
+    padding:25px;
+    background:#102a43;
+    border-radius:12px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.6);
+}
+
+h2{
+    margin-bottom:15px;
+    border-left:4px solid #2cb1bc;
+    padding-left:10px;
+}
+
+/* FORM GRID */
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.form-grid textarea{
+    grid-column:1/3;
+}
+
+input, select, textarea{
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #243b53;
+    background:#0b1e36;
+    color:white;
+}
+
+input:focus, select:focus, textarea:focus{
+    outline:none;
+    border:1px solid #2cb1bc;
+}
+
+button{
+    padding:10px 15px;
+    background:#2cb1bc;
+    color:#0b1e36;
+    font-weight:bold;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#38bec9;
+}
+
+/* DASHBOARD */
+.cards{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.card{
+    flex:1;
+    min-width:150px;
+    background:#0b1e36;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+    border:1px solid #243b53;
+}
+
+.badge{
+    padding:4px 8px;
+    border-radius:12px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.pending{ background:orange; color:black; }
+.resolved{ background:green; }
+.escalated{ background:red; }
+
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+th, td{
+    padding:10px;
+    border:1px solid #243b53;
+    text-align:center;
+}
+
+th{
+    background:#243b53;
+}
+
+.action-btn{
+    padding:5px 8px;
+    font-size:12px;
+}
+
+/* FOOTER */
+footer{
+    text-align:center;
+    padding:15px;
+    margin-top:30px;
+    background:#102a43;
+    color:#9fb3c8;
+}
+
+@media(max-width:768px){
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Smart Campus Complaint Portal</h1>
+<p>Efficient | Transparent | Digital Governance</p>
+</header>
+
+<!-- REGISTER -->
+<section>
+<h2>Register Complaint</h2>
+<div class="form-grid">
+<input type="text" id="name" placeholder="Your Name">
+<input type="email" id="email" placeholder="Your Email">
+<select id="category">
+<option>Water Issue</option>
+<option>Electricity</option>
+<option>Road Damage</option>
+<option>Cleanliness</option>
+</select>
+<input type="text" id="location" placeholder="Location">
+<textarea id="description" placeholder="Describe your issue"></textarea>
+</div>
+<br>
+<button onclick="submitComplaint()">Submit Complaint</button>
+</section>
+
+<!-- DASHBOARD -->
+<section>
+<h2>Admin Dashboard</h2>
+<div class="cards">
+<div class="card">Total <h3 id="total">0</h3></div>
+<div class="card">Pending <h3 id="pending">0</h3></div>
+<div class="card">Resolved <h3 id="resolved">0</h3></div>
+<div class="card">Escalated <h3 id="escalated">0</h3></div>
+</div>
+</section>
+
+<!-- TABLE -->
+<section>
+<h2>All Complaints</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Category</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="complaintTable"></tbody>
+</table>
+</section>
+
+<footer>
+© 2026 Smart Campus | Developed by Nikki 💙
+</footer>
+
+<script>
+
+let complaints = JSON.parse(localStorage.getItem("complaints")) || [];
+
+updateUI();
+
+function submitComplaint(){
+
+let name = document.getElementById("name").value.trim();
+let email = document.getElementById("email").value.trim();
+let category = document.getElementById("category").value;
+let location = document.getElementById("location").value.trim();
+let description = document.getElementById("description").value.trim();
+
+if(!name || !email || !description){
+alert("Please fill all required fields!");
+return;
+}
+
+let complaint = {
+id: Date.now(),
+name,
+email,
+category,
+location,
+description,
+status:"Pending"
+};
+
+complaints.push(complaint);
+localStorage.setItem("complaints", JSON.stringify(complaints));
+
+clearForm();
+updateUI();
+}
+
+function updateUI(){
+updateDashboard();
+displayComplaints();
+}
+
+function displayComplaints(){
+let table = document.getElementById("complaintTable");
+table.innerHTML="";
+
+complaints.forEach(c => {
+
+let statusClass = c.status.toLowerCase();
+
+table.innerHTML += `
+<tr>
+<td>${c.id}</td>
+<td>${c.name}</td>
+<td>${c.category}</td>
+<td><span class="badge ${statusClass}">${c.status}</span></td>
+<td>
+<button class="action-btn" onclick="resolveComplaint(${c.id})">Resolve</button>
+<button class="action-btn" onclick="escalateComplaint(${c.id})">Escalate</button>
+</td>
+</tr>
+`;
+});
+}
+
+function resolveComplaint(id){
+complaints = complaints.map(c =>
+c.id === id ? {...c, status:"Resolved"} : c
+);
+localStorage.setItem("complaints", JSON.stringify(complaints));
+updateUI();
+}
+
+function escalateComplaint(id){
+complaints = complaints.map(c =>
+c.id === id ? {...c, status:"Escalated"} : c
+);
+localStorage.setItem("complaints", JSON.stringify(complaints));
+updateUI();
+}
+
+function updateDashboard(){
+document.getElementById("total").innerText = complaints.length;
+document.getElementById("pending").innerText = complaints.filter(c=>c.status==="Pending").length;
+document.getElementById("resolved").innerText = complaints.filter(c=>c.status==="Resolved").length;
+document.getElementById("escalated").innerText = complaints.filter(c=>c.status==="Escalated").length;
+}
+
+function clearForm(){
+document.getElementById("name").value="";
+document.getElementById("email").value="";
+document.getElementById("location").value="";
+document.getElementById("description").value="";
+}
+
+</script>
+
+</body>
+</html>
